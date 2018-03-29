@@ -4,12 +4,12 @@ public class Name {
 
     String value;
     Gender gender;
-    int rank;
+    int count;
 
-    public void Song(String value, Gender gender, int rank, int year) {
+    public void Name(String value, Gender gender, int rank, int year) {
         this.value = value;
         this.gender = gender;
-        this.rank = rank;
+        this.count = rank;
     }
 
     public enum Gender {
@@ -20,7 +20,7 @@ public class Name {
 
     public static Comparator<Name> NameRankComparator = new Comparator<Name> () {
         public int compare(Name name1, Name name2) {
-            return name2.rank - name1.rank;
+            return name2.count - name1.count;
         }
     };
 

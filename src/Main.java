@@ -1,30 +1,57 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
 
     public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.println("What year would you like your name to be generated from?");
+        int year = in.nextInt();
+        System.out.println("How common do you want the name to be? (Popular, Common, Uncommon, Rare)");
+        String input = in.next();
+        Popularity popularity = parsePopularity(input);
+
         Map<Integer, NameList> firstNameLists = getFirstNameLists();
-        NameList firstNameList = getFirstNameList(firstNameLists, 2010);
-        NameList surNameList = getSurnameList();
+        NameList firstNameList = getFirstNameList(firstNameLists, year);
+        NameList surnameList = getSurnameList();
         for (int i = 0; i < 15; i++) {
-            generateName(firstNameList, surNameList);
+            generateName(firstNameList, surnameList, popularity);
         }
     }
 
-    public static void generateName(NameList firstNameList, NameList surNameList) {
-        Name first = firstNameList.getRandomName();
-        Name last = surNameList.getRandomName();
-        System.out.println(first.value + ' ' + toSentenceCase(last.value));
+    public static Popularity parsePopularity(String input) {
+        input.toLowerCase();
+        switch (input) {
+            case "popular": {
+                return Popularity.POPULAR;
+            }
+            case "common": {
+                return Popularity.COMMON;
+            }
+            case "uncommon": {
+                return Popularity.UNCOMMON;
+            }
+            case "rare": {
+                return Popularity.RARE;
+            }
+            default: {
+                return Popularity.COMMON;
+            }
+        }
+
+    }
+
+    public static void generateName(NameList firstNameList, NameList surnameList, Popularity popularity) {
+        Name first = firstNameList.getRandomName(popularity);
+        Name last = surnameList.getRandomName(popularity);
+        System.out.println(toSentenceCase(first.value) + " ("+ first.count + ") " +
+                toSentenceCase(last.value) + " (" + last.count + ")");
     }
 
     public static Map<Integer, NameList> getFirstNameLists() {
-        Map<Integer, NameList> firstNameLists = new HashMap();;
+        Map<Integer, NameList> firstNameLists = new HashMap();
         File listDir = new File("src/names");
         for (int i = 0; i < listDir.listFiles().length; i++) {
             if (listDir.listFiles()[i].isFile()) {
@@ -82,7 +109,7 @@ public class Main {
                 } else {
                     name.gender = Name.Gender.NONE;
                 }
-                name.rank = Integer.parseInt(splitLine[2]);
+                name.count = Integer.parseInt(splitLine[2]);
                 nameList.names.add(name);
             }
             fileReader.close();
@@ -93,6 +120,11 @@ public class Main {
         return nameList;
     }
 
+
+    /**
+     * @param value
+     * @return
+     */
     private static String toSentenceCase(String value) {
         String modified = value.toLowerCase().substring(1, value.length());
         String capital = value.substring(0, 1).toUpperCase();

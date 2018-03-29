@@ -1,39 +1,42 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 
 public class NameList {
 
-    ArrayList<Name> names = new ArrayList<Name>();
+    List<Name> names = new ArrayList<Name>();
+    List<Name> namesSubList = new ArrayList<Name>();
     int year;
+
     Random random = new Random();
 
-    public Name getRandomName() {
-        return names.get(random.nextInt(names.size()));
-    }
-    public void printName(Name name) {
-        System.out.println(name.value + " " + name.rank + " " + name.gender + " " + year);
+    public Name getRandomName(Popularity popularity) {
+        Map<Popularity, Integer> popRange = new HashMap<Popularity, Integer>();
+        popRange.put(Popularity.POPULAR, (names.size() * 1) / 100);
+        popRange.put(Popularity.COMMON, (names.size() * 10) / 100);
+        popRange.put(Popularity.UNCOMMON, (names.size() * 25) / 100);
+
+        switch (popularity) {
+            case POPULAR: {
+                setTopNames(0, popRange.get(Popularity.POPULAR));
+                break;
+            }
+            case COMMON: {
+                setTopNames(popRange.get(Popularity.POPULAR), popRange.get(Popularity.COMMON));
+                break;
+            }
+            case UNCOMMON: {
+                setTopNames(popRange.get(Popularity.COMMON), popRange.get(Popularity.UNCOMMON));
+                break;
+            }
+            case RARE: {
+                setTopNames(popRange.get(Popularity.UNCOMMON), names.size());
+                break;
+            }
+        }
+        return names.get(random.nextInt(namesSubList.size()));
     }
 
-    public void printTopNames() {
-        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~");
-        // By rank
+    public void setTopNames(int lowerLimit, int upperLimit) {
         Collections.sort(names, Name.NameRankComparator);
-        for (int i = 0; i < 15; i++) {
-            printName(names.get(i));
-        }
-        // By alphabetical order
-        System.out.println("-------------------------");
-        Collections.sort(names, Name.NameValueComparator);
-        for (int i = 0; i < 3; i++) {
-            printName(names.get(i));
-        }
-
-        // By gender
-        System.out.println(".........................");
-        Collections.sort(names, Name.NameGenderComparator);
-        for (int i = 0; i < 3; i++) {
-            printName(names.get(i));
-        }
+        namesSubList = names.subList(lowerLimit, upperLimit);
     }
 }
