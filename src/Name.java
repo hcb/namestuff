@@ -12,12 +12,6 @@ public class Name {
         this.count = rank;
     }
 
-    public enum Gender {
-        MALE,
-        FEMALE,
-        NONE
-    }
-
     public static Comparator<Name> NameRankComparator = new Comparator<Name> () {
         public int compare(Name name1, Name name2) {
             return name2.count - name1.count;
