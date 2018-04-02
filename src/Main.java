@@ -119,15 +119,4 @@ public class Main {
         }
         return nameList;
     }
-
-
-    /**
-     * @param value
-     * @return
-     */
-    private static String toSentenceCase(String value) {
-        String modified = value.toLowerCase().substring(1, value.length());
-        String capital = value.substring(0, 1).toUpperCase();
-        return capital + modified;
-    }
 }
