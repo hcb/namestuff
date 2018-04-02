@@ -9,20 +9,28 @@ public class Main {
         Scanner in = new Scanner(System.in);
         System.out.println("What year would you like your name to be generated from?");
         int year = in.nextInt();
-        System.out.println("How common do you want the name to be? (Popular, Common, Uncommon, Rare)");
-        String input = in.next();
-        Popularity popularity = parsePopularity(input);
+        System.out.println("How common do you want the first name to be? (Popular, Common, Uncommon, Rare)");
+        String firstNamePopularityInput = in.next();
+        Popularity firstNamePopularity = parsePopularity(firstNamePopularityInput);
+        System.out.println("How common do you want the surname to be? (Popular, Common, Uncommon, Rare)");
+        String surnamePopularityInput = in.next();
+        Popularity surnamePopularity = parsePopularity(surnamePopularityInput);
 
-        Map<Integer, NameList> firstNameLists = getFirstNameLists();
-        NameList firstNameList = getFirstNameList(firstNameLists, year);
-        NameList surnameList = getSurnameList();
+        // TODO: Implement `either` in NameList class
+        System.out.println("Gender? (Male, Female, Either)");
+        String genderInput = in.next();
+        Gender gender = parseGender(genderInput);
+
+        //Map<Integer, NameList> firstNameLists = getFirstNameLists();
+        NameList firstNameList = getFirstNameList(year, firstNamePopularity, gender);
+        NameList surnameList = getSurnameList(surnamePopularity);
         for (int i = 0; i < 15; i++) {
-            generateName(firstNameList, surnameList, popularity);
+            generateName(firstNameList, surnameList);
         }
     }
 
     public static Popularity parsePopularity(String input) {
-        input.toLowerCase();
+        input = input.toLowerCase();
         switch (input) {
             case "popular": {
                 return Popularity.POPULAR;
@@ -40,14 +48,23 @@ public class Main {
                 return Popularity.COMMON;
             }
         }
-
     }
 
-    public static void generateName(NameList firstNameList, NameList surnameList, Popularity popularity) {
-        Name first = firstNameList.getRandomName(popularity);
-        Name last = surnameList.getRandomName(popularity);
-        System.out.println(toSentenceCase(first.value) + " ("+ first.count + ") " +
-                toSentenceCase(last.value) + " (" + last.count + ")");
+    public static Gender parseGender(String input) {
+        input = input.toLowerCase();
+        if (input.equals("female")) {
+            return Gender.FEMALE;
+        } else if (input.equals("male")) {
+            return Gender.MALE;
+        }
+        return Gender.NONE;
+    }
+
+    public static void generateName(NameList firstNameList, NameList surnameList) {
+        Name first = firstNameList.getRandomName();
+        Name last = surnameList.getRandomName();
+        System.out.println(Utils.toSentenceCase(first.value) + " ("+ first.count + ") " +
+                Utils.toSentenceCase(last.value) + " (" + last.count + ")");
     }
 
     public static Map<Integer, NameList> getFirstNameLists() {
@@ -70,16 +87,44 @@ public class Main {
         return nameLists.get(year);
     }
 
-    private static NameList getSurnameList() {
-        // Get surnames into a list
-        File surnameListDir = new File("src/surnames");
-        NameList surNameList = new NameList();
+    private static NameList getFirstNameList(int year, Popularity popularity, Gender gender) {
+        String fileName = "/yob" + year + ".txt";
+        File nameListDir = new File("src/names");
+        NameList firstNameList = new NameList();
         try {
-            surNameList = readNameList(surnameListDir + "/surnames2010.csv");
+            firstNameList = readNameList(nameListDir + fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return surNameList;
+        firstNameList.setGender(gender);
+
+        Map<Popularity, Integer> popRange = new HashMap<Popularity, Integer>();
+        popRange.put(Popularity.POPULAR, (firstNameList.names.size() * 1) / 100);
+        popRange.put(Popularity.COMMON, (firstNameList.names.size() * 5) / 100);
+        popRange.put(Popularity.UNCOMMON, (firstNameList.names.size() * 25) / 100);
+
+        firstNameList.setPopularityRange(popRange, popularity);
+
+        return firstNameList;
+    }
+
+    private static NameList getSurnameList(Popularity popularity) {
+        // Get surnames into a list
+        File surnameListDir = new File("src/surnames");
+        NameList surnameList = new NameList();
+        try {
+            surnameList = readNameList(surnameListDir + "/surnames2010.csv");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Map<Popularity, Integer> popRange = new HashMap<Popularity, Integer>();
+        popRange.put(Popularity.POPULAR, (surnameList.names.size() * 1) / 1000);
+        popRange.put(Popularity.COMMON, (surnameList.names.size() * 1) / 100);
+        popRange.put(Popularity.UNCOMMON, (surnameList.names.size() * 5) / 100);
+
+        surnameList.setPopularityRange(popRange, popularity);
+        return surnameList;
     }
 
     private static NameList readNameList(String fileName) throws IOException {
@@ -103,11 +148,11 @@ public class Main {
                 Name name = new Name();
                 name.value = splitLine[0];
                 if (splitLine[1].equalsIgnoreCase("f")) {
-                    name.gender = Name.Gender.FEMALE;
+                    name.gender = Gender.FEMALE;
                 } else if (splitLine[1].equalsIgnoreCase("m")) {
-                    name.gender = Name.Gender.MALE;
+                    name.gender = Gender.MALE;
                 } else {
-                    name.gender = Name.Gender.NONE;
+                    name.gender = Gender.NONE;
                 }
                 name.count = Integer.parseInt(splitLine[2]);
                 nameList.names.add(name);

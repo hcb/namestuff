@@ -6,14 +6,11 @@ public class NameList {
     List<Name> namesSubList = new ArrayList<Name>();
     int year;
 
+
+
     Random random = new Random();
 
-    public Name getRandomName(Popularity popularity) {
-        Map<Popularity, Integer> popRange = new HashMap<Popularity, Integer>();
-        popRange.put(Popularity.POPULAR, (names.size() * 1) / 100);
-        popRange.put(Popularity.COMMON, (names.size() * 10) / 100);
-        popRange.put(Popularity.UNCOMMON, (names.size() * 25) / 100);
-
+    public void setPopularityRange(Map<Popularity, Integer> popRange, Popularity popularity) {
         switch (popularity) {
             case POPULAR: {
                 setTopNames(0, popRange.get(Popularity.POPULAR));
@@ -32,11 +29,29 @@ public class NameList {
                 break;
             }
         }
-        return names.get(random.nextInt(namesSubList.size()));
+    }
+
+    public void setGender(Gender gender) {
+        if (gender.equals(Gender.NONE)) {
+            return;
+        } else {
+            for (Name name : names) {
+                if (name.gender.equals(gender)) {
+                    namesSubList.add(name);
+                }
+            }
+            names.clear();
+            names.addAll(namesSubList);
+        }
+    }
+
+    public Name getRandomName() {
+        int next = random.nextInt(names.size());
+        return names.get(next);
     }
 
     public void setTopNames(int lowerLimit, int upperLimit) {
         Collections.sort(names, Name.NameRankComparator);
-        namesSubList = names.subList(lowerLimit, upperLimit);
+        names = names.subList(lowerLimit, upperLimit);
     }
 }
